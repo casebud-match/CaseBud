@@ -1,0 +1,59 @@
+name: Deploy JupyterLite App
+
+on:
+  push:
+    branches:
+      - main  # or the branch you are using for deployment
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      # Step 2: Set up Google credentials (from .json file stored in secrets)
+      - name: Set up Google credentials
+        run: |
+          echo "${{ secrets.GOOGLE_SHEET_CREDENTIALS }}" > google_sheet_credentials.json
+        env:
+          GOOGLE_SHEET_CREDENTIALS: ${{ secrets.GOOGLE_SHEET_CREDENTIALS }}
+
+      # Step 3: Set up Zoom credentials and other environment variables
+      - name: Set up Zoom and other environment variables
+        run: |
+          echo "ZOOM_ACCOUNT_ID=${{ secrets.ZOOM_ACCOUNT_ID }}" >> $GITHUB_ENV
+          echo "ZOOM_CLIENT_ID=${{ secrets.ZOOM_CLIENT_ID }}" >> $GITHUB_ENV
+          echo "ZOOM_CLIENT_SECRET=${{ secrets.ZOOM_CLIENT_SECRET }}" >> $GITHUB_ENV
+          echo "ZOOM_TOKEN_URL=${{ secrets.ZOOM_TOKEN_URL }}" >> $GITHUB_ENV
+          echo "SENDER_EMAIL=${{ secrets.SENDER_EMAIL }}" >> $GITHUB_ENV
+          echo "SENDER_PASSWORD=${{ secrets.SENDER_PASSWORD }}" >> $GITHUB_ENV
+          echo "SHEET_ID=${{ secrets.SHEET_ID }}" >> $GITHUB_ENV
+
+      # Step 4: Install dependencies (if necessary, e.g., for Voilà or JupyterLite)
+      - name: Install dependencies
+        run: |
+          # Install necessary dependencies for Voilà or other tools
+          pip install voila
+
+      # Step 5: Build and deploy the app
+      - name: Build and deploy Voilà app
+        run: |
+          voila --no-browser --port=8000 CaseBud_fin.ipynb  # Replace with your notebook name
+
+      # Step 6: Push the _output directory to GitHub (if needed)
+      - name: Set up Git user
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+      - name: Deploy to GitHub Pages
+      run: |
+        git checkout --orphan gh-pages
+        git rm -rf .
+        cp -r _output/* .
+        git add .
+        git commit -m "Deploy app"
+        git push -f origin gh-pages
