@@ -14,14 +14,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      # Step 2: Set up Google credentials (from .json file stored in secrets)
+      # Step 2: Set up Google credentials (from .txt file stored in secrets)
       - name: Set up Google credentials
         run: |
-          echo "${{ secrets.GOOGLE_SHEET_CREDENTIALS }}" > google_sheet_credentials.json
+          echo "${{ secrets.GOOGLE_SHEET_CREDENTIALS }}" > google_sheet_credentials.txt
         env:
           GOOGLE_SHEET_CREDENTIALS: ${{ secrets.GOOGLE_SHEET_CREDENTIALS }}
 
-      # Step 3: Set up Zoom credentials and other environment variables
+      # Step 3: Set up Zoom and other environment variables
       - name: Set up Zoom and other environment variables
         run: |
           echo "ZOOM_ACCOUNT_ID=${{ secrets.ZOOM_ACCOUNT_ID }}" >> $GITHUB_ENV
@@ -35,7 +35,6 @@ jobs:
       # Step 4: Install dependencies (if necessary, e.g., for Voilà or JupyterLite)
       - name: Install dependencies
         run: |
-          # Install necessary dependencies for Voilà or other tools
           pip install voila
 
       # Step 5: Build and deploy the app
@@ -43,17 +42,16 @@ jobs:
         run: |
           voila --no-browser --port=8000 CaseBud_fin.ipynb  # Replace with your notebook name
 
-      # Step 6: Push the _output directory to GitHub (if needed)
-      - name: Set up Git user
+      # Step 6: Push the _output directory to GitHub Pages (if needed)
+      - name: Upload _output to GitHub Pages
         run: |
+          # Assuming you want to push the _output folder to the gh-pages branch
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
+          git checkout --orphan gh-pages
+          git rm -rf .
+          cp -r _output/* .
+          git add .
+          git commit -m "Deploy app"
+          git push -f origin gh-pages
 
-      - name: Deploy to GitHub Pages
-      run: |
-        git checkout --orphan gh-pages
-        git rm -rf .
-        cp -r _output/* .
-        git add .
-        git commit -m "Deploy app"
-        git push -f origin gh-pages
