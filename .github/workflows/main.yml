@@ -47,8 +47,9 @@ jobs:
           voici build --output-dir dist --contents CaseBud_fin.ipynb --lite-dir .
 
       - name: Upload Artifact
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-artifact@v2  # Updated to v2
         with:
+          name: jupyterlite-build
           path: ./dist
 
   deploy:
@@ -67,6 +68,7 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v1
+
 
 
 
