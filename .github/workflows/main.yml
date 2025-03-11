@@ -40,7 +40,7 @@ jobs:
       # Step 5: Build and deploy JupyterLite app
       - name: Build and deploy JupyterLite app
         run: |
-          voici export CaseBud_fin.ipynb --output-dir _output  # Replace with your notebook name
+          voici CaseBud_fin.ipynb --export  # Replace with your notebook name
 
       # Step 6: Upload _output to GitHub Pages
       - name: Deploy to GitHub Pages
