@@ -1,28 +1,28 @@
-name: Deploy JupyterLite App
+name: Build and Deploy JupyterLite App
 
 on:
   push:
     branches:
-      - main  # Trigger deployment when pushing to the main branch
+      - main  
+  pull_request:
+    branches:
+      - '*'
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the repository
-      - name: Checkout repository
-        uses: actions/checkout@v2
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-      # Step 2: Set up Google credentials (from .txt file stored in secrets)
-      - name: Set up Google credentials
+      - name: Set up Google Credentials
         run: |
           echo "${{ secrets.GOOGLE_SHEET_CREDENTIALS }}" > google_sheet_credentials.txt
         env:
           GOOGLE_SHEET_CREDENTIALS: ${{ secrets.GOOGLE_SHEET_CREDENTIALS }}
 
-      # Step 3: Set up Zoom credentials and other environment variables
-      - name: Set up Zoom and other environment variables
+      - name: Set up Zoom and Other Environment Variables
         run: |
           echo "ZOOM_ACCOUNT_ID=${{ secrets.ZOOM_ACCOUNT_ID }}" >> $GITHUB_ENV
           echo "ZOOM_CLIENT_ID=${{ secrets.ZOOM_CLIENT_ID }}" >> $GITHUB_ENV
@@ -32,30 +32,42 @@ jobs:
           echo "SENDER_PASSWORD=${{ secrets.SENDER_PASSWORD }}" >> $GITHUB_ENV
           echo "SHEET_ID=${{ secrets.SHEET_ID }}" >> $GITHUB_ENV
 
-      # Step 4: Install dependencies
-      - name: Install dependencies
-        run: |
-          pip install voici  # Install Voici (used instead of Voilà)
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
 
-      # Step 5: Build and deploy JupyterLite app
-      - name: Build and deploy JupyterLite app
+      - name: Install Dependencies
         run: |
-          voici build --output-dir _output --contents CaseBud_fin.ipynb --lite-dir .
-          voici export --output-archive CaseBud-jupyterlite.tgz
+          python -m pip install --upgrade pip
+          pip install voici jupyterlite
 
-      # Step 6: Upload _output to GitHub Pages
+      - name: Build JupyterLite Site
+        run: |
+          voici build --output-dir dist --contents CaseBud_fin.ipynb --lite-dir .
+
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: ./dist
+
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+    steps:
       - name: Deploy to GitHub Pages
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "actions@github.com"
-          git checkout --orphan gh-pages
-          git rm -rf .
-          cp -r _output/* .
-          git add .
-          git commit -m "Deploy JupyterLite App"
-          git push -f https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git gh-pages
+        id: deployment
+        uses: actions/deploy-pages@v1
+
 
 
 
