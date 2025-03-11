@@ -35,12 +35,12 @@ jobs:
       # Step 4: Install dependencies (if necessary, e.g., for Voilà or JupyterLite)
       - name: Install dependencies
         run: |
-          pip install voila
+          pip install voici
 
       # Step 5: Build and deploy the app
-      - name: Build and deploy Voilà app
+      - name: Build and deploy Voici app
         run: |
-          voila --no-browser --port=8000 CaseBud_fin.ipynb  # Replace with your notebook name
+          voici --no-browser --port=8000 CaseBud_fin.ipynb  # Replace with your notebook name
 
       # Step 6: Push the _output directory to GitHub Pages (if needed)
       - name: Upload _output to GitHub Pages
