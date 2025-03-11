@@ -40,7 +40,7 @@ jobs:
       # Step 5: Build and deploy the app
       - name: Build and deploy Voici app
         run: |
-          voici CaseBud_fin.ipynb  # Replace with your notebook name
+          voici --prefix _output CaseBud_fin.ipynb  # Replace with your notebook name
 
       # Step 6: Push the _output directory to GitHub Pages (if needed)
       - name: Upload _output to GitHub Pages
