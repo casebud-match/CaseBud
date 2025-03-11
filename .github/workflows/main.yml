@@ -3,7 +3,7 @@ name: Deploy JupyterLite App
 on:
   push:
     branches:
-      - main  # or the branch you are using for deployment
+      - main  # Change if you're using a different branch for deployment
 
 jobs:
   deploy:
@@ -21,7 +21,7 @@ jobs:
         env:
           GOOGLE_SHEET_CREDENTIALS: ${{ secrets.GOOGLE_SHEET_CREDENTIALS }}
 
-      # Step 3: Set up Zoom and other environment variables
+      # Step 3: Set up Zoom credentials and other environment variables
       - name: Set up Zoom and other environment variables
         run: |
           echo "ZOOM_ACCOUNT_ID=${{ secrets.ZOOM_ACCOUNT_ID }}" >> $GITHUB_ENV
@@ -32,20 +32,19 @@ jobs:
           echo "SENDER_PASSWORD=${{ secrets.SENDER_PASSWORD }}" >> $GITHUB_ENV
           echo "SHEET_ID=${{ secrets.SHEET_ID }}" >> $GITHUB_ENV
 
-      # Step 4: Install dependencies (if necessary, e.g., for Voilà or JupyterLite)
+      # Step 4: Install dependencies
       - name: Install dependencies
         run: |
-          pip install voici
+          pip install voila
 
-      # Step 5: Build and deploy the app
-      - name: Build and deploy Voici app
+      # Step 5: Unzip the _output.zip file
+      - name: Unzip _output.zip
         run: |
-          voici --prefix _output CaseBud_fin.ipynb  # Replace with your notebook name
+          unzip _output.zip -d _output
 
-      # Step 6: Push the _output directory to GitHub Pages (if needed)
+      # Step 6: Push the _output directory to GitHub Pages
       - name: Upload _output to GitHub Pages
         run: |
-          # Assuming you want to push the _output folder to the gh-pages branch
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           git checkout --orphan gh-pages
@@ -54,4 +53,5 @@ jobs:
           git add .
           git commit -m "Deploy app"
           git push -f origin gh-pages
+
 
