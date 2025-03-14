@@ -25,6 +25,7 @@ jobs:
         with:
           micromamba-version: '1.5.8-0'
           environment-file: 'build-environment.yml'
+          cache-environment: true  # Cache dependencies for faster builds
 
       - name: Set up Google credentials
         run: |
@@ -42,16 +43,19 @@ jobs:
           echo "SENDER_PASSWORD=${{ secrets.SENDER_PASSWORD }}" >> $GITHUB_ENV
           echo "SHEET_ID=${{ secrets.SHEET_ID }}" >> $GITHUB_ENV
 
-      # Uncomment for debugging environment variables
-      # - name: Debug Environment Variables
-      #   run: env | grep -E 'ZOOM_|SENDER_|SHEET_'
+      # Debug: List installed dependencies (Optional)
+      - name: Check Installed Packages
+        run: micromamba list
 
-      - name: Install Voici
-        run: pip install voici
+      - name: Install Voici and dependencies
+        run: |
+          pip install voici
+          micromamba install -y libarchive-c xeus-python -n build-env  # Fix missing dependencies
 
       - name: Build JupyterLite App
         shell: bash -l {0}
-        run: voici build --output-dir dist --content content --lite-dir .
+        run: |
+          voici build --output-dir dist --lite-dir . --environment-file build-environment.yml
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
