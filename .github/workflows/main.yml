@@ -47,7 +47,7 @@ jobs:
 
       - name: Build JupyterLite App
         shell: bash -l {0}
-        run: voici build --output-dir dist --contents contents --lite-dir .
+        run: voici build --output-dir dist --content content --lite-dir .
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
