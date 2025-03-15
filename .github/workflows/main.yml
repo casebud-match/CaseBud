@@ -3,10 +3,10 @@ name: Deploy JupyterLite App
 on:
   push:
     branches:
-      - main  # Trigger deployment when pushing to the main branch
+      - main
   pull_request:
     branches:
-      - '*'  # Trigger on any pull request
+      - '*'
 
 jobs:
   build:
@@ -20,12 +20,16 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install mamba
+      - name: Install micromamba
         uses: mamba-org/setup-micromamba@v1
         with:
           micromamba-version: '1.5.8-0'
+          environment-name: build-env  # Explicitly define the environment name
           environment-file: 'build-environment.yml'
-          cache-environment: true  # Cache dependencies for faster builds
+          cache-environment: true
+
+      - name: Set MICROMAMBA_ROOT_PREFIX
+        run: echo "MICROMAMBA_ROOT_PREFIX=$HOME/micromamba" >> $GITHUB_ENV
 
       - name: Debug Environment Variables
         run: env | sort
@@ -46,23 +50,25 @@ jobs:
           echo "SENDER_PASSWORD=${{ secrets.SENDER_PASSWORD }}" >> $GITHUB_ENV
           echo "SHEET_ID=${{ secrets.SHEET_ID }}" >> $GITHUB_ENV
 
-      # Debug: Check installed dependencies
-      - name: Check Installed Packages
-        run: micromamba list
+      - name: Debug Installed Packages
+        run: micromamba list -n build-env
 
-      # Explicitly install dependencies from conda-forge
+      - name: Create Environment
+        run: |
+          micromamba create -y -n build-env -f build-environment.yml
+
       - name: Install Voici and dependencies
         run: |
-          pip install voici
-          micromamba install -y -c conda-forge libarchive-c xeus-python
+          micromamba install -y -n build-env -c conda-forge libarchive-c xeus-python
+          micromamba run -n build-env pip install voici
 
       - name: Debug Micromamba Environment
-        run: micromamba env export
+        run: micromamba env export -n build-env
 
       - name: Build JupyterLite App
         shell: bash -l {0}
         run: |
-          voici build --output-dir dist --lite-dir . --environment-file build-environment.yml
+          micromamba run -n build-env voici build --output-dir dist --lite-dir . --environment-file build-environment.yml
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
