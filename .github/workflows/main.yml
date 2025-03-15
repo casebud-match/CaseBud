@@ -68,7 +68,7 @@ jobs:
       - name: Build JupyterLite App
         shell: bash -l {0}
         run: |
-          micromamba run -n build-env voici build --output-dir dist --lite-dir . --environment-file build-environment.yml
+          voici build --output-dir dist --lite-dir .
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
