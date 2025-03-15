@@ -27,6 +27,9 @@ jobs:
           environment-file: 'build-environment.yml'
           cache-environment: true  # Cache dependencies for faster builds
 
+      - name: Debug Environment Variables
+        run: env | sort
+
       - name: Set up Google credentials
         run: |
           echo "${{ secrets.GOOGLE_SHEET_CREDENTIALS }}" > google_sheet_credentials.txt
@@ -43,14 +46,18 @@ jobs:
           echo "SENDER_PASSWORD=${{ secrets.SENDER_PASSWORD }}" >> $GITHUB_ENV
           echo "SHEET_ID=${{ secrets.SHEET_ID }}" >> $GITHUB_ENV
 
-      # Debug: List installed dependencies (Optional)
+      # Debug: Check installed dependencies
       - name: Check Installed Packages
         run: micromamba list
 
+      # Explicitly install dependencies from conda-forge
       - name: Install Voici and dependencies
         run: |
           pip install voici
-          micromamba install -y libarchive-c xeus-python -n build-env  # Fix missing dependencies
+          micromamba install -y -c conda-forge libarchive-c xeus-python
+
+      - name: Debug Micromamba Environment
+        run: micromamba env export
 
       - name: Build JupyterLite App
         shell: bash -l {0}
