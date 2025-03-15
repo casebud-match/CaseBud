@@ -59,7 +59,7 @@ jobs:
 
       - name: Install Voici and dependencies
         run: |
-          micromamba install -y -n build-env -c conda-forge libarchive-c xeus-python
+          micromamba install -y -n build-env -c conda-forge libarchive xeus-python
           micromamba run -n build-env pip install voici
 
       - name: Debug Micromamba Environment
